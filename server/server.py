@@ -39,7 +39,7 @@ def get_response_from_transcript(transcript, query):
 
 @app.route("/api/home", methods=["GET"])
 def return_home():
-    question = "What is capitalism?"
+    question = "What is capitalism in 1 simple sentence?"
     transcript = get_transcript_from_youtube_url()
     response = get_response_from_transcript(transcript, question)
     print(response)

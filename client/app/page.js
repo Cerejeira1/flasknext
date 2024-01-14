@@ -5,18 +5,22 @@ import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [message, setMessage] = useState('Loading');
-
+  const fetchData = async () => {
+    try {
+      const options = {
+        cache: 'no-store',
+        method: 'GET',
+        next: { revalidate: 0 },
+      };
+      const response = await fetch('http://localhost:8080/api/home', options);
+      const data = await response.json();
+      setMessage(data.message);
+      console.log('data catched');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/home');
-        const data = await response.json();
-        setMessage(data.message);
-        console.log('data catched');
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
     fetchData();
   }, []);
   return (
