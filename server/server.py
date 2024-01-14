@@ -8,7 +8,8 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.vectorstores import FAISS 
 from dotenv import load_dotenv
-
+import sys
+print(sys.executable)
 load_dotenv()
 
 embeddings = OpenAIEmbeddings()
