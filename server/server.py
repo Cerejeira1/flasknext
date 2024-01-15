@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -37,7 +37,7 @@ def get_response_from_transcript(transcript, query):
 
 @app.route("/api/home", methods=["GET"])
 def return_home():
-    question = "What is capitalism in 1 simple sentence?"
+    question = request.args.get('question', default="What is capitalism in 1 simple sentence?", type=str)
     transcript = get_transcript_from_youtube_url()
     response = get_response_from_transcript(transcript, question)
     print(response)
