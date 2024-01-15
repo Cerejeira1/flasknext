@@ -28,9 +28,7 @@ def get_response_from_transcript(transcript, query):
 
         Only use the factual information from the transcript to answer the question. 
         
-        If you feel like you don't have enough information to answer the question, say "I don't have sufficient information on that topic in order to answer that with confidence". 
-        
-        Your answers should be detailed."""
+        If you feel like you don't have enough information to answer the question, say that you don't have sufficient information on that topic in order to answer that with confidence."""
     )
     chain = LLMChain(llm=llm, prompt=prompt)
     response = chain.run(question=query, transcript=transcript)
