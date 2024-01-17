@@ -101,7 +101,7 @@ export default function Home() {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="flex-1 p-2 pl-8 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            className="flex-1 p-2 pl-4 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
             placeholder="Type your message..."
           />
           <button
