@@ -11,6 +11,7 @@ import {
 export default function Home() {
   const [userInput, setUserInput] = useState('');
   const [messages, setMessages] = useState([]);
+  const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const endOfMessagesRef = useRef(null);
@@ -25,7 +26,7 @@ export default function Home() {
     const isAtBottom =
       chatContainerRef.current.scrollHeight -
         chatContainerRef.current.scrollTop <=
-      chatContainerRef.current.clientHeight + 10; // Small threshold to improve UX
+      chatContainerRef.current.clientHeight + 10;
     setShowScrollDown(!isAtBottom);
   };
 
@@ -39,17 +40,42 @@ export default function Home() {
   const handleSendMessage = async () => {
     if (userInput.trim() === '') return;
 
-    const newUserMessage = { role: 'user', message: userInput };
+    const newUserMessage = { role: 'user', content: userInput };
+    const updatedConversation = [...conversation, newUserMessage];
+    setConversation(updatedConversation);
     setMessages([...messages, newUserMessage]);
 
     setLoading(true);
-    const response = await fetch(
-      `http://localhost:8080/api/home?question=${encodeURIComponent(userInput)}`
-    );
-    const data = await response.json();
-    const newAssistantMessage = { role: 'assistant', message: data.message };
 
-    setMessages((prevMessages) => [...prevMessages, newAssistantMessage]);
+    try {
+      const response = await fetch('http://localhost:8080/api/home', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: userInput,
+          convo: updatedConversation,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      const newAssistantMessage = { role: 'assistant', content: data.message };
+      setConversation([...updatedConversation, newAssistantMessage]);
+      setMessages([...messages, newUserMessage, newAssistantMessage]);
+    } catch (error) {
+      console.error('Fetch error:', error);
+      const errorAssistantMessage = {
+        role: 'assistant',
+        content: 'Houve um erro, tente novamente mais tarde',
+      };
+      setMessages([...messages, newUserMessage, errorAssistantMessage]);
+    }
+
     setUserInput('');
     setLoading(false);
   };
@@ -80,7 +106,7 @@ export default function Home() {
                   : 'text-gray-700 border-gray-200'
               }`}
             >
-              {msg.message}
+              {msg.content}
             </p>
           </div>
         ))}
@@ -88,7 +114,7 @@ export default function Home() {
       </div>
       {showScrollDown && (
         <button
-          className="fixed bottom-[85px] left-1/2 transform -translate-x-1/2 p-2 bg-blue-500 rounded-lg text-white hover:bg-blue-600"
+          className="fixed bottom-[85px] left-1/2 transform -translate-x-1/2 p-2 bg-black rounded-lg text-white hover:bg-black/80"
           onClick={scrollToBottom}
         >
           <FaArrowDown size={12} />
@@ -101,13 +127,13 @@ export default function Home() {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="flex-1 p-2 pl-4 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            className="flex-1 p-2 pl-4 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black"
             placeholder="Type your message..."
           />
           <button
             onClick={handleSendMessage}
-            className="absolute right-[6px] p-2 bg-blue-500 rounded-lg text-white hover:bg-blue-600 disabled:bg-gray-300"
-            disabled={loading}
+            className="absolute right-[6px] p-2 bg-black rounded-lg text-white hover:bg-black/80 disabled:bg-gray-300"
+            disabled={loading || userInput == ''}
           >
             {loading ? (
               <FaSpinner className="animate-spin" size={12} />

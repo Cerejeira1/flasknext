@@ -2,10 +2,11 @@
 
 import pinecone
 import os
-
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone
-
+import json
 from openai import OpenAI
 from IPython.display import clear_output
 
@@ -13,6 +14,8 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
+app = Flask(__name__)
+CORS(app)
 
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 pinecone_env = os.getenv("PINECONE_ENV")
@@ -251,6 +254,8 @@ def wrapGetResponseFromTopicDirect(prompt, context, convo):
 
 
 
+
+
 def getResponseFromTopicDirect(query, context, convo):
     #    Caso os excertos não incluam informações relevantes para responder à pergunta, não os utilizes para responder à pergunta.
     
@@ -295,24 +300,101 @@ def getResponseFromTopicDirect(query, context, convo):
         
     return ot
 
+
+def getResponseFromTopicDirectNoStream(query, context, convo):
+    #    Caso os excertos não incluam informações relevantes para responder à pergunta, não os utilizes para responder à pergunta.
+    
+    wholePrompt = f'''
+
+    Human:
+    <context>
+    {context}
+    </context>
+    
+    ###MISSION###
+
+    Tu és um assistente que consegue ajudar a responder e comparar assuntos presentes no programa eleitoral dos partidos para as eleições legislativas portuguesas de 2024.
+    
+    Para te ajudar a responder às perguntas dos utilizadores, fornecemos-lhe informações contextuais relevantes para a pergunta do utilizador dentro das tags <context>. Utiliza apenas estas informações para responder à pergunta.
+                    
+    Eis algumas regras importantes que deve seguir:
+    <regras>
+    <regra>Caso a pergunta do utilizador não esteja relacionada com as eleições legislativas, responde a dizer que só podes responder a perguntas relacionadas com as eleições legislativas.</regra>
+    <regra>Usa apenas informação factual e sê democratico sem tomar qualquer identidade política.</regra>
+    <regra>Não menciones teres acesso a excertos dos programas eleitorais.</regra>
+    <regra>As respostas devem ser extensas e detalhadas.</regra>
+    <regra>As respostas devem estar escritas em português euroepeu. Trate os utilizadores por você.</regra>
+    <regra>Responde em bullet points.</regra>
+    </regras>
+    '''  
+    
+    convo[0]["content"] = wholePrompt
+    
+    #Responde à pergunta: {query}
+    #Com base **apenas** nos seguintes excertos dos programas eleitorais: {context}
+
+    client = OpenAI()
+
+    ree = client.chat.completions.create(
+      model= "gpt-3.5-turbo-16k",
+      temperature = 0.5,
+      max_tokens = 2048,
+      messages= convo,
+    stream = False)
+        
+    answer_content = ree.choices[0].message.content if ree.choices else ""
+    
+    return answer_content
+    #return ree.choices[0].delta.content
+    
 #{"role": "assistant", "content": "Put here assistant reply"},
 
 
 
-prompt = "como é que se contrastam as poisções do PS e do PSD em relação à educação"
+# prompt = "como é que se contrastam as poisções do PS e do PSD em relação à educação"
+# convo = None
+# js, cost = queryToTopicPerParty(prompt, convo)
+# context = jsToContext(js)
 
-convo = None
-js, cost = queryToTopicPerParty(prompt, convo)
-context = jsToContext(js)
-
-convo = wrapGetResponseFromTopicDirect(prompt, context, convo)
-
+# convo = wrapGetResponseFromTopicDirect(prompt, context, convo)
 
 
-prompt = "e o Chega?"
 
-js, cost = queryToTopicPerParty(prompt, convo)
-context = jsToContext(js)
-print(js)
+# prompt = "e o Chega?"
 
-convo = wrapGetResponseFromTopicDirect(prompt, context, convo)
+# js, cost = queryToTopicPerParty(prompt, convo)
+# context = jsToContext(js)
+# print(js)
+# if(convo is None):
+        #convo = [{"role": "system", "content": "definido mais à frente"}, 
+                 #{"role": "user", "content": prompt}]
+# else:
+    #convo += [{"role": "user", "content": prompt}]
+
+# answer = getResponseFromTopicDirectNoStream(prompt, context, convo)
+
+# convo += [{"role": "assistant", "content": answer}]
+
+
+@app.route("/api/home", methods=["POST"])
+def return_home():
+    data = request.get_json()
+    prompt = data.get('question', "What is capitalism in 1 simple sentence?")
+    convo = data.get('convo', [{"role": "system", "content": "definido mais à frente"}])
+
+    convo.append({"role": "user", "content": prompt})
+
+    js, cost = queryToTopicPerParty(prompt, convo)
+    context = jsToContext(js)
+
+    answer = getResponseFromTopicDirectNoStream(prompt, context, convo)
+    convo.append({"role": "assistant", "content": answer})
+
+    # Optional: Return the updated conversation for client reference
+    return jsonify({
+        "message": answer,
+        "convo": convo
+    })
+
+if __name__ == "__main__":
+    app.run(debug=True, port=8080)
