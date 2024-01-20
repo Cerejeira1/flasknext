@@ -1,5 +1,6 @@
 'use client';
 import Sidebar from '@/components/sidebar';
+import Suggestions from '@/components/suggestions';
 import { useState, useEffect, useRef } from 'react';
 import {
   FaPaperPlane,
@@ -17,7 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [selectedOption, setSelectedOption] = useState('overall');
-  const [selectedParty, setSelectedParty] = useState('');
+  const [selectedParty, setSelectedParty] = useState('Todos');
   const endOfMessagesRef = useRef(null);
   const chatContainerRef = useRef(null);
 
@@ -41,10 +42,11 @@ export default function Home() {
     return () => chatContainer.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSendMessage = async () => {
-    if (userInput.trim() === '') return;
+  const handleSendMessage = async (input = userInput) => {
+    setUserInput('');
+    if (input.trim() === '') return;
 
-    const newUserMessage = { role: 'user', content: userInput };
+    const newUserMessage = { role: 'user', content: input };
     const updatedConversation = [...conversation, newUserMessage];
     setConversation(updatedConversation);
     setMessages([...messages, newUserMessage]);
@@ -58,7 +60,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          question: userInput,
+          question: input,
           convo: updatedConversation,
         }),
       });
@@ -81,8 +83,12 @@ export default function Home() {
       setMessages([...messages, newUserMessage, errorAssistantMessage]);
     }
 
-    setUserInput('');
     setLoading(false);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setUserInput(suggestion);
+    handleSendMessage(suggestion);
   };
 
   return (
@@ -96,7 +102,7 @@ export default function Home() {
         />
         <div className="flex flex-col justify-between h-screen p-6 bg-slate-100 w-full">
           <div
-            className="overflow-auto space-y-2 mb-4 hide-scrollbar"
+            className="overflow-auto space-y-2 mb-2 hide-scrollbar"
             ref={chatContainerRef}
           >
             {messages.map((msg, index) => (
@@ -125,15 +131,21 @@ export default function Home() {
             <div ref={endOfMessagesRef}></div>
           </div>
 
-          {showScrollDown && (
-            <button
-              className="mx-auto mb-4 p-2 bg-black rounded-lg text-white hover:bg-black/80"
-              onClick={scrollToBottom}
-            >
-              <FaArrowDown size={12} />
-            </button>
-          )}
-          <div className="w-full max-w-2xl mx-auto mt-auto">
+          <div className="w-full max-w-2xl mx-auto mt-auto flex flex-col space-y-2">
+            {showScrollDown && (
+              <button
+                className="mx-auto my-auto p-2 bg-black rounded-lg text-white hover:bg-black/80"
+                onClick={scrollToBottom}
+              >
+                <FaArrowDown size={12} />
+              </button>
+            )}
+            {messages.length === 0 && (
+              <Suggestions
+                selectedParty={selectedParty}
+                onSuggestionClick={handleSuggestionClick}
+              />
+            )}
             <div className="flex items-center space-x-2 relative">
               <input
                 type="text"
@@ -155,6 +167,10 @@ export default function Home() {
                 )}
               </button>
             </div>
+            <p className="text-xs text-black mx-auto opacity-40">
+              O chatbot pode cometer erros, considere verificar as informações
+              importantes
+            </p>
           </div>
         </div>
       </div>
