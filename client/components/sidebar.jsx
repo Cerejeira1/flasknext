@@ -4,12 +4,17 @@ import Image from 'next/image';
 import Logo from '@/public/logo.png';
 import MediaCapital from '@/public/mediacapital.png';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import { RxDoubleArrowLeft, RxDoubleArrowRight } from 'react-icons/rx';
 
 const Sidebar = ({
-  selectedOption,
-  setSelectedOption,
+  isSidebarOpen,
+  toggleSidebar,
   selectedParty,
   setSelectedParty,
+  setConversation,
+  setMessages,
+  abortController,
+  setLoading,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const parties = ['Todos', 'PSD', 'IL', 'PS', 'Chega', 'BE', 'PAN', 'Livre'];
@@ -23,16 +28,38 @@ const Sidebar = ({
   ];
 
   const handleDropdown = (party) => {
-    setSelectedParty(party);
-    setDropdownOpen(false);
+    if (selectedParty !== party) {
+      abortController.abort(); // Cancel ongoing fetch request
+      setLoading(false); // Set loading to false
+      setConversation([]);
+      setMessages([]);
+      setSelectedParty(party);
+      setDropdownOpen(false);
+    } else {
+      setSelectedParty(party);
+      setDropdownOpen(false);
+    }
+  };
+  const handleToggleClick = () => {
+    toggleSidebar();
+    setDropdownOpen(false); // Set dropdownOpen to false
   };
 
   return (
-    <div className="hidden md:flex w-64 h-screen bg-black shadow-xl py-6 flex-col">
-      <div className="flex justify-center mb-8 px-6 cursor-pointer">
-        <Image src={MediaCapital} alt="Company Logo" width={180} height={90} />
-      </div>
-      {selectedOption === 'overall' && (
+    <div className="absolute left-0 md:static z-20 flex flex-row space-x-2">
+      <div
+        className={`flex transition-all duration-200 ease-in-out ${
+          isSidebarOpen ? 'w-64' : 'w-0'
+        } overflow-hidden h-screen bg-black shadow-xl py-6 flex-col`}
+      >
+        <div className="flex justify-center mb-8 px-6 cursor-pointer">
+          <Image
+            src={MediaCapital}
+            alt="Company Logo"
+            width={180}
+            height={90}
+          />
+        </div>
         <div className="mb-8 px-4 relative">
           <p className="text-[10px] text-slate-100 mb-2 px-2">
             Escolhe o partido:
@@ -59,27 +86,44 @@ const Sidebar = ({
                    hover:bg-gray-900 cursor-pointer text-slate-100 rounded-lg"
                   onClick={() => handleDropdown(party)}
                 >
-                  <p className="text-sm">{party}</p>
+                  <p className="text-xs">{party}</p>
                 </div>
               ))}
             </div>
           )}
         </div>
-      )}
-      <div className="flex-1 overflow-auto px-4">
-        <p className="text-[10px] text-slate-100 mb-2 px-2">Temas sugeridos:</p>
-        {themes.map((theme) => (
-          <div
-            key={theme}
-            className="block p-2 text-slate-100 bg-black hover:bg-gray-900 cursor-pointer rounded-lg transition-colors"
-          >
-            <p className="text-sm font-semibold">{theme}</p>
-          </div>
-        ))}
+        <div className="flex-1 overflow-auto px-4">
+          <p className="text-[10px] text-slate-100 mb-2 px-2">
+            Temas sugeridos:
+          </p>
+          {themes.map((theme) => (
+            <div
+              key={theme}
+              className="block p-2 text-slate-100 bg-black rounded-lg"
+            >
+              <p className="text-sm font-semibold">{theme}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col justify-center space-y-1 px-6 cursor-pointer">
+          <p className="text-[10px] text-slate-100">Powered by:</p>
+          <Image src={Logo} alt="Company Logo" width={180} height={90} />
+        </div>
       </div>
-      <div className="flex flex-col justify-center space-y-1 px-6 cursor-pointer">
-        <p className="text-xs text-slate-100">Powered by:</p>
-        <Image src={Logo} alt="Company Logo" width={180} height={90} />
+      <div className="flex justify-end px-0">
+        {isSidebarOpen ? (
+          <RxDoubleArrowLeft
+            className="text-black my-auto cursor-pointer hover:scale-105 hover:opacity-20 transition-all duration-200"
+            size={25}
+            onClick={handleToggleClick}
+          />
+        ) : (
+          <RxDoubleArrowRight
+            className="text-black my-auto cursor-pointer hover:scale-105 hover:opacity-20 transition-all duration-200"
+            size={25}
+            onClick={handleToggleClick}
+          />
+        )}
       </div>
     </div>
   );
