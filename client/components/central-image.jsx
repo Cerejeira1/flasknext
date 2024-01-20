@@ -8,10 +8,11 @@ import Livre from '@/public/livre1.png';
 import IL from '@/public/il1.png';
 import PAN from '@/public/pan.png';
 import PS from '@/public/ps1.png';
+import Todos from '@/public/pt.png';
 
 const CentralImage = ({ selectedParty }) => {
   const parties = {
-    Todos: PS,
+    Todos: Todos,
     PSD: PSD,
     IL: IL,
     PS: PS,
@@ -30,14 +31,24 @@ const CentralImage = ({ selectedParty }) => {
         className="opacity-20 mx-auto"
       />
       <div className="flex flex-col mx-auto space-y-0">
-        <p className="text-black opacity-20 text-center mx-auto">
-          Estás a falar com o/a{' '}
-          <span className="font-semibold text-black">{selectedParty}</span>{' '}
-        </p>
-        <p className="text-black opacity-20 text-center mx-auto text-xs">
-          Podes encontrar o programa eleitoral deste partido{' '}
-          <span className="font-bold underline cursor-pointer">aqui</span>
-        </p>
+        {selectedParty === 'Todos' ? (
+          <p className="text-black opacity-20 text-center mx-auto">
+            Estás a falar com{' '}
+            <span className="font-semibold text-black">{selectedParty}</span> os
+            partidos portugueses
+          </p>
+        ) : (
+          <>
+            <p className="text-black opacity-20 text-center mx-auto">
+              Estás a falar com o/a{' '}
+              <span className="font-semibold text-black">{selectedParty}</span>{' '}
+            </p>
+            <p className="text-black opacity-20 text-center mx-auto text-xs">
+              Podes encontrar o programa eleitoral deste partido{' '}
+              <span className="font-bold underline cursor-pointer">aqui</span>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

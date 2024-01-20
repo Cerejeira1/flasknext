@@ -3,35 +3,35 @@ import React from 'react';
 const Suggestions = ({ onSuggestionClick, selectedParty }) => {
   const suggestions = {
     Todos: [
-      'O que é que o Todos acha do estado anual do SNS?',
-      'O que é que o Todos fará quanto às imigrações?',
+      'Em que diferem os partidos portugueses?',
+      'Quais os partidos de esquerda e de direita?',
     ],
     PSD: [
-      'O que é que o PSD acha do estado anual do SNS?',
+      'O que é que o PSD acha do estado atual do SNS?',
       'O que é que o PSD fará quanto às imigrações?',
     ],
     IL: [
-      'O que é que o IL acha do estado anual do SNS?',
-      'O que é que o IL fará quanto às imigrações?',
+      'O que é que a IL acha do estado atual do SNS?',
+      'O que é que a IL fará quanto às imigrações?',
     ],
     PS: [
-      'O que é que o PS acha do estado anual do SNS?',
+      'O que é que o PS acha do estado atual do SNS?',
       'O que é que o PS fará quanto às imigrações?',
     ],
     Chega: [
-      'O que é que o Chega acha do estado anual do SNS?',
+      'O que é que o Chega acha do estado atual do SNS?',
       'O que é que o Chega fará quanto às imigrações?',
     ],
     BE: [
-      'O que é que o BE acha do estado anual do SNS?',
+      'O que é que o BE acha do estado atual do SNS?',
       'O que é que o BE fará quanto às imigrações?',
     ],
     PAN: [
-      'O que é que o PAN acha do estado anual do SNS?',
+      'O que é que o PAN acha do estado atual do SNS?',
       'O que é que o PAN fará quanto às imigrações?',
     ],
     Livre: [
-      'O que é que o Livre acha do estado anual do SNS?',
+      'O que é que o Livre acha do estado atual do SNS?',
       'O que é que o Livre fará quanto às imigrações?',
     ],
   };

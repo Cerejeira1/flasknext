@@ -51,9 +51,21 @@ export default function Home() {
   const handleSendMessage = async (input = userInput) => {
     setUserInput('');
     if (input === '') return;
+
     abortControllerRef.current = new AbortController();
+
+    // Initialize conversation with a system message if this is the first user input
+    const initialSystemMessage =
+      conversation.length === 0
+        ? [{ role: 'system', content: 'Initial context or instructions' }]
+        : [];
+
     const newUserMessage = { role: 'user', content: input };
-    const updatedConversation = [...conversation, newUserMessage];
+    const updatedConversation = [
+      ...initialSystemMessage,
+      ...conversation,
+      newUserMessage,
+    ];
     setConversation(updatedConversation);
     setMessages([...messages, newUserMessage]);
 
@@ -76,20 +88,59 @@ export default function Home() {
         throw new Error('Network response was not ok');
       }
 
-      const data = await response.json();
-      console.log(data.message);
-      const newAssistantMessage = { role: 'assistant', content: data.message };
-      setConversation([...updatedConversation, newAssistantMessage]);
-      setMessages([...messages, newUserMessage, newAssistantMessage]);
+      const reader = response.body.getReader();
+      let partialResponse = '';
+      let isFirstChunk = true;
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          console.log('Stream complete');
+          break;
+        }
+
+        partialResponse += new TextDecoder('utf-8').decode(value, {
+          stream: true,
+        });
+
+        // Update the conversation
+        if (isFirstChunk) {
+          // For the first chunk, append a new assistant message
+          setConversation((prevConvo) => [
+            ...prevConvo,
+            { role: 'assistant', content: partialResponse },
+          ]);
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { role: 'assistant', content: partialResponse },
+          ]);
+          isFirstChunk = false;
+        } else {
+          // For subsequent chunks, update the last assistant message
+          setConversation((prevConvo) => [
+            ...prevConvo.slice(0, -1),
+            { ...prevConvo[prevConvo.length - 1], content: partialResponse },
+          ]);
+          setMessages((prevMessages) => [
+            ...prevMessages.slice(0, -1),
+            {
+              ...prevMessages[prevMessages.length - 1],
+              content: partialResponse,
+            },
+          ]);
+        }
+      }
     } catch (error) {
       if (error.name === 'AbortError') {
         console.log('Fetch aborted');
       } else {
+        console.error('Error:', error);
         const errorAssistantMessage = {
           role: 'assistant',
           content: 'Houve um erro, tente novamente mais tarde',
         };
-        setMessages([...messages, newUserMessage, errorAssistantMessage]);
+        setMessages((prevMessages) => [...prevMessages, errorAssistantMessage]);
       }
     }
 
@@ -147,14 +198,6 @@ export default function Home() {
           </div>
 
           <div className="w-full max-w-2xl mx-auto mt-auto flex flex-col space-y-4">
-            {showScrollDown && (
-              <button
-                className="mx-auto my-auto p-2 bg-black rounded-lg text-white hover:bg-black/80"
-                onClick={scrollToBottom}
-              >
-                <FaArrowDown size={12} />
-              </button>
-            )}
             {messages.length === 0 && (
               <>
                 <CentralImage selectedParty={selectedParty} />
@@ -165,6 +208,14 @@ export default function Home() {
               </>
             )}
             <div className="flex flex-col space-y-2">
+              {showScrollDown && (
+                <button
+                  className="relative mx-auto p-2 bg-black rounded-lg text-white hover:bg-black/80 cursor-pointer"
+                  onClick={scrollToBottom}
+                >
+                  <FaArrowDown size={12} />
+                </button>
+              )}
               <div className="flex items-center space-x-2 relative ">
                 <input
                   type="text"
@@ -175,7 +226,7 @@ export default function Home() {
                   placeholder="Escreva uma pergunta ao Horácio..."
                 />
                 <button
-                  onClick={handleSendMessage}
+                  onClick={() => handleSendMessage()}
                   className="absolute right-[6px] p-3 bg-black rounded-lg text-white hover:bg-black/80 disabled:bg-slate-300"
                   disabled={loading || userInput == ''}
                 >

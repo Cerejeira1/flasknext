@@ -2,7 +2,7 @@
 
 import pinecone
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response, stream_with_context
 from flask_cors import CORS
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone
@@ -298,7 +298,7 @@ def getResponseFromTopicDirect(query, context, convo):
     stream = True):
         yield chunk
         
-    return ot
+    return 
 
 
 def getResponseFromTopicDirectNoStream(query, context, convo):
@@ -379,22 +379,24 @@ def getResponseFromTopicDirectNoStream(query, context, convo):
 @app.route("/api/home", methods=["POST"])
 def return_home():
     data = request.get_json()
-    prompt = data.get('question', "What is capitalism in 1 simple sentence?")
+    prompt = data.get('question', "Default question if not provided")
     convo = data.get('convo', [{"role": "system", "content": "definido mais à frente"}])
 
     convo.append({"role": "user", "content": prompt})
-
+    print(prompt, convo)
     js, cost = queryToTopicPerParty(prompt, convo)
     context = jsToContext(js)
 
-    answer = getResponseFromTopicDirectNoStream(prompt, context, convo)
-    convo.append({"role": "assistant", "content": answer})
+    def generate():
+        for chunk in getResponseFromTopicDirect(prompt, context, convo):
+            if chunk and chunk.choices[0] and type(chunk.choices[0].delta.content) == str:
+                # Assuming chunk.message.content contains the string to be sent
+                response_text = chunk.choices[0].delta.content
+                yield response_text.encode('utf-8')  # Encode the string to bytes
+            else:
+                yield b""  # Yield empty bytes if there's no data
 
-    # Optional: Return the updated conversation for client reference
-    return jsonify({
-        "message": answer,
-        "convo": convo
-    })
+    return Response(stream_with_context(generate()), content_type='application/json')
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)

@@ -5,6 +5,14 @@ import Logo from '@/public/logo.png';
 import MediaCapital from '@/public/mediacapital.png';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { RxDoubleArrowLeft, RxDoubleArrowRight } from 'react-icons/rx';
+import { HiAcademicCap } from 'react-icons/hi2';
+import { FaHeartbeat } from 'react-icons/fa';
+import { RiMoneyEuroCircleFill } from 'react-icons/ri';
+import { GiInjustice } from 'react-icons/gi';
+import { BiWorld } from 'react-icons/bi';
+import { FaHouseChimney } from 'react-icons/fa6';
+import { FaCreditCard } from 'react-icons/fa6';
+import { IoMdTrain } from 'react-icons/io';
 
 const Sidebar = ({
   isSidebarOpen,
@@ -18,13 +26,29 @@ const Sidebar = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const parties = ['Todos', 'PSD', 'IL', 'PS', 'Chega', 'BE', 'PAN', 'Livre'];
+  const themeIcons = {
+    Educação: <HiAcademicCap className="text-white mx-auto" size={18} />,
+    Saúde: <FaHeartbeat className="text-white mx-auto" size={18} />,
+    Economia: (
+      <RiMoneyEuroCircleFill className="text-white mx-auto" size={18} />
+    ),
+    Justiça: <GiInjustice className="text-white mx-auto" size={18} />,
+    Ambiente: <BiWorld className="text-white mx-auto" size={18} />,
+    Habitação: <FaHouseChimney className="text-white mx-auto" size={18} />,
+    'Política Fiscal': (
+      <FaCreditCard className="text-white mx-auto" size={18} />
+    ),
+    Transportes: <IoMdTrain className="text-white mx-auto" size={18} />,
+  };
   const themes = [
     'Educação',
     'Saúde',
-    'Imigração',
-    'SNS',
+    'Economia',
+    'Justiça',
+    'Ambiente',
     'Habitação',
-    'Fiscalização',
+    'Política Fiscal',
+    'Transportes',
   ];
 
   const handleDropdown = (party) => {
@@ -96,14 +120,18 @@ const Sidebar = ({
           <p className="text-[10px] text-slate-100 mb-2 px-2">
             Temas sugeridos:
           </p>
-          {themes.map((theme) => (
-            <div
-              key={theme}
-              className="block p-2 text-slate-100 bg-black rounded-lg"
-            >
-              <p className="text-sm font-semibold">{theme}</p>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 gap-2">
+            {!dropdownOpen &&
+              themes.map((theme) => (
+                <div
+                  key={theme}
+                  className="flex flex-col space-y-2 p-2 text-slate-100 bg-white/10 rounded-lg"
+                >
+                  {themeIcons[theme]}
+                  <p className="text-xs font-semibold mx-auto">{theme}</p>
+                </div>
+              ))}
+          </div>
         </div>
         <div className="flex flex-col justify-center space-y-1 px-6 cursor-pointer">
           <p className="text-[10px] text-slate-100">Powered by:</p>
