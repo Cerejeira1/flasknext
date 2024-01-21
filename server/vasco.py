@@ -376,7 +376,7 @@ def getResponseFromTopicDirectNoStream(query, context, convo):
 # convo += [{"role": "assistant", "content": answer}]
 
 
-@app.route("/api/home", methods=["POST"])
+@app.route("/", methods=["POST"])
 def return_home():
     data = request.get_json()
     prompt = data.get('question', "Default question if not provided")
