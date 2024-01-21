@@ -74,20 +74,17 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        'https://young-garden-88823-101536f78930.herokuapp.com/api',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            question: input,
-            convo: updatedConversation,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
+      const response = await fetch('http://localhost:8080/api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: input,
+          convo: updatedConversation,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
