@@ -13,6 +13,7 @@ import { BiWorld } from 'react-icons/bi';
 import { FaHouseChimney } from 'react-icons/fa6';
 import { FaCreditCard } from 'react-icons/fa6';
 import { IoMdTrain } from 'react-icons/io';
+import { HiUserGroup } from 'react-icons/hi';
 
 const Sidebar = ({
   isSidebarOpen,
@@ -38,7 +39,9 @@ const Sidebar = ({
     'Política Fiscal': (
       <FaCreditCard className="text-white mx-auto" size={18} />
     ),
-    Transportes: <IoMdTrain className="text-white mx-auto" size={18} />,
+    'Direitos Sociais': (
+      <HiUserGroup className="text-white mx-auto" size={18} />
+    ),
   };
   const themes = [
     'Educação',
@@ -48,7 +51,7 @@ const Sidebar = ({
     'Ambiente',
     'Habitação',
     'Política Fiscal',
-    'Transportes',
+    'Direitos Sociais',
   ];
 
   const handleDropdown = (party) => {
