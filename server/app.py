@@ -376,7 +376,7 @@ def getResponseFromTopicDirectNoStream(query, context, convo):
 # convo += [{"role": "assistant", "content": answer}]
 
 
-@app.route("/", methods=["POST"])
+@app.route("/api", methods=["POST"])
 def return_home():
     data = request.get_json()
     prompt = data.get('question', "Default question if not provided")
@@ -395,8 +395,11 @@ def return_home():
                 yield response_text.encode('utf-8')  # Encode the string to bytes
             else:
                 yield b""  # Yield empty bytes if there's no data
-
-    return Response(stream_with_context(generate()), content_type='application/json')
+    response = Response(stream_with_context(generate()), content_type='application/json')
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
 
 if __name__ == "__main__":
     app.run(debug=False, port=8080)

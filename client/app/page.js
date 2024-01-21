@@ -75,7 +75,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        'https://git.heroku.com/young-garden-88823.git',
+        'https://git.heroku.com/young-garden-88823.git/app',
         {
           method: 'POST',
           headers: {
