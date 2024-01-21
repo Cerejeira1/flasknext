@@ -399,4 +399,4 @@ def return_home():
     return Response(stream_with_context(generate()), content_type='application/json')
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    app.run(debug=False, port=8080)
