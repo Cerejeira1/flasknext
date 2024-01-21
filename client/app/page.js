@@ -20,6 +20,8 @@ export default function Home() {
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedParty, setSelectedParty] = useState('Todos');
+  const [isAssistantWriting, setIsAssistantWriting] = useState(false);
+
   const endOfMessagesRef = useRef(null);
   const chatContainerRef = useRef(null);
   const abortControllerRef = useRef(new AbortController());
@@ -91,12 +93,14 @@ export default function Home() {
       const reader = response.body.getReader();
       let partialResponse = '';
       let isFirstChunk = true;
+      setIsAssistantWriting(true); // Assistant starts writing
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
           console.log('Stream complete');
+          setIsAssistantWriting(false); // Assistant finishes writing
           break;
         }
 
@@ -106,7 +110,6 @@ export default function Home() {
 
         // Update the conversation
         if (isFirstChunk) {
-          // For the first chunk, append a new assistant message
           setConversation((prevConvo) => [
             ...prevConvo,
             { role: 'assistant', content: partialResponse },
@@ -117,7 +120,6 @@ export default function Home() {
           ]);
           isFirstChunk = false;
         } else {
-          // For subsequent chunks, update the last assistant message
           setConversation((prevConvo) => [
             ...prevConvo.slice(0, -1),
             { ...prevConvo[prevConvo.length - 1], content: partialResponse },
@@ -141,6 +143,7 @@ export default function Home() {
           content: 'Houve um erro, tente novamente mais tarde',
         };
         setMessages((prevMessages) => [...prevMessages, errorAssistantMessage]);
+        setIsAssistantWriting(false); // Ensure it's set to false in case of error
       }
     }
 
@@ -165,7 +168,15 @@ export default function Home() {
           abortController={abortControllerRef.current}
           setLoading={setLoading}
         />
-        <div className="flex flex-col justify-between h-screen p-6 bg-slate-100 w-full">
+        <div className="flex flex-col justify-between h-screen p-6 bg-slate-100 w-full relative">
+          {showScrollDown && !isAssistantWriting && (
+            <button
+              className="absolute left-1/2 -translate-x-1/2 bottom-32 mx-auto p-2 bg-black rounded-lg text-white hover:bg-black/80 cursor-pointer"
+              onClick={scrollToBottom}
+            >
+              <FaArrowDown size={12} />
+            </button>
+          )}
           <div
             className="overflow-auto space-y-2 mb-2 hide-scrollbar"
             ref={chatContainerRef}
@@ -207,15 +218,8 @@ export default function Home() {
                 />
               </>
             )}
+
             <div className="flex flex-col space-y-2">
-              {showScrollDown && (
-                <button
-                  className="relative mx-auto p-2 bg-black rounded-lg text-white hover:bg-black/80 cursor-pointer"
-                  onClick={scrollToBottom}
-                >
-                  <FaArrowDown size={12} />
-                </button>
-              )}
               <div className="flex items-center space-x-2 relative ">
                 <input
                   type="text"
